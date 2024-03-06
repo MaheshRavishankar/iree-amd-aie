@@ -152,17 +152,17 @@ module attributes { transform.with_named_sequence } {
     // Find the fill operation to fuse
     %fill_op = transform.structured.match ops{["linalg.fill"]} in %variant_op : (!transform.any_op) -> !transform.any_op
     // Get the consumers of the fill. It has to be a scf.forall op.
-    // %peeled_loop = transform.get_consumers_of_result %fill_op[0] : (!transform.any_op) -> (!transform.op<"scf.forall">)
+    %peeled_loop = transform.get_consumers_of_result %fill_op[0] : (!transform.any_op) -> (!transform.op<"scf.forall">)
 
-    // // Fuse the fill within the loop.
-    // %peel_fused, %13 = transform.structured.fuse_into_containing_op %fill_op into %peeled_loop : (!transform.any_op, !transform.op<"scf.forall">) -> (!transform.any_op, !transform.any_op)
+    // Fuse the fill within the loop.
+    %peel_fused, %13 = transform.structured.fuse_into_containing_op %fill_op into %peeled_loop : (!transform.any_op, !transform.op<"scf.forall">) -> (!transform.any_op, !transform.any_op)
 
-    // // Clean up.
-    // transform.include @cleanup failures(propagate) (%variant_op) : (!transform.any_op) -> ()
+    // Clean up.
+    transform.include @cleanup failures(propagate) (%variant_op) : (!transform.any_op) -> ()
 
-    // // Bufferize and drop HAL decriptor from memref ops.
-    // transform.iree.eliminate_empty_tensors %variant_op : (!transform.any_op) -> ()
-    // %14 = transform.iree.bufferize %variant_op : (!transform.any_op) -> !transform.any_op
+    // Bufferize and drop HAL decriptor from memref ops.
+    transform.iree.eliminate_empty_tensors %variant_op : (!transform.any_op) -> ()
+    %14 = transform.iree.bufferize %variant_op : (!transform.any_op) -> !transform.any_op
     transform.yield
   }
 }
